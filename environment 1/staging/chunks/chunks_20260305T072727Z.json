@@ -1,0 +1,218 @@
+[
+    {
+        "doc_id": "doc_0df3b17e21cf823d",
+        "chunk_id": 1,
+        "pdf_path": "/dbfs/FileStore/tables/pdf_files/sample_confluence_pdf.pdf",
+        "page_no": 1,
+        "content": "[Section: Data ingestion job and GraphQL with Limit Search] Overview Main Functions Environment Setup and Dependencies Configuration Management Secret Management Data Extraction from EDP Timestamp Comparison and Incremental Updates Elasticsearch Document Construction Data Indexing and Storage Utility Functions Data Processing Flow Error Handling and Resilience Network and Security Configuration Performance Optimization Monitoring and Troubleshooting GraphQL API and Limit Search Overview Query syntax Limit search Limit search related intents Limit search conditions syntax",
+        "chunk_hash": "10c409572a376710422453da14e5236f51aaa3768224a9eb96bb889ac13b79be",
+        "run_id": "20260305T072727Z"
+    },
+    {
+        "doc_id": "doc_0df3b17e21cf823d",
+        "chunk_id": 2,
+        "pdf_path": "/dbfs/FileStore/tables/pdf_files/sample_confluence_pdf.pdf",
+        "page_no": 1,
+        "content": "[Section: Data ingestion job and GraphQL with Limit Search->Overview] This document explains the main logic and functions used for ingesting company specific data in to the elastic search database. The customer.ai chatbot backend uses the elastic company data to search and narrow down the results to specific set of companies relevant to the question. This AWS Glue job handles the ingestion of customer data from the Enterprise Data Platform (EDP) GraphQL API into Elasticsearch for the PC377 AI Smart Search application. The job processes data columns that could be leveraged for searching, generates embeddings using machine learning models, and maintains an up-to-date search index with periodic data synchronization. The job operates in a proxied NextEra Energy environment and includes comprehensive error handling, timestamp-based incremental updates, and automatic dependency management for required Python packages. Gluejob name : pc377-smart-search-ingestion-edp-job",
+        "chunk_hash": "0367405209f790ca8312e928859a1541ca6e2cdd7a9eb1c9106b8db8e45197ae",
+        "run_id": "20260305T072727Z"
+    },
+    {
+        "doc_id": "doc_0df3b17e21cf823d",
+        "chunk_id": 3,
+        "pdf_path": "/dbfs/FileStore/tables/pdf_files/sample_confluence_pdf.pdf",
+        "page_no": 1,
+        "content": "[Section: Main Functions->Environment Setup and Dependencies] The main execution block configures proxy settings for NextEra Energy's network environment and dynamically installs required packages including Elasticsearch 8.12.1 and requests library. This ensures the job can access external APIs through the corporate proxy while maintaining the necessary dependencies for execution.",
+        "chunk_hash": "86fe7a136cef4b2f0afa61b2553efaf1e9de4c8af5f6ca44f39ff97287262f0d",
+        "run_id": "20260305T072727Z"
+    },
+    {
+        "doc_id": "doc_0df3b17e21cf823d",
+        "chunk_id": 4,
+        "pdf_path": "/dbfs/FileStore/tables/pdf_files/sample_confluence_pdf.pdf",
+        "page_no": 1,
+        "content": "[Section: Main Functions->Configuration Management] The load_config() function reads configuration data from the edp_ingestion.yaml file, providing centralized management of job parameters and settings. This function includes error handling to gracefully exit if configuration files are unavailable or corrupted.",
+        "chunk_hash": "b39cfe7d00d1464525908db8f4df28f02bc5989532673d9eb1b6cab426db13e2",
+        "run_id": "20260305T072727Z"
+    },
+    {
+        "doc_id": "doc_0df3b17e21cf823d",
+        "chunk_id": 5,
+        "pdf_path": "/dbfs/FileStore/tables/pdf_files/sample_confluence_pdf.pdf",
+        "page_no": 1,
+        "content": "[Section: Main Functions->Secret Management] The get_secret() function retrieves API credentials and connection details from AWS Secrets Manager. It accesses the secret \"pc377-ai-smart-search-api- secrets\" containing EDP API keys, Elasticsearch URL, and authentication credentials required for secure data access across the ingestion pipeline.",
+        "chunk_hash": "c93c091c957a7b891c83f3c2a6886b83920a35dd0a6e14f52e078c6699ee9cb7",
+        "run_id": "20260305T072727Z"
+    },
+    {
+        "doc_id": "doc_0df3b17e21cf823d",
+        "chunk_id": 6,
+        "pdf_path": "/dbfs/FileStore/tables/pdf_files/sample_confluence_pdf.pdf",
+        "page_no": 1,
+        "content": "[Section: Main Functions->Data Extraction from EDP] The get_edp_data() function serves as the primary data extraction engine, querying the Enterprise Data Platform's GraphQL API for customer information. It implements intelligent pagination to handle large datasets, processing both insert and update timestamps to ensure comprehensive data coverage while respecting API rate limits. This function retrieves extensive customer data including regional short-term values for various ISO markets (CAISO, ERCOT, ISO-NE, MISO, NYISO, PJM, SPP, SERC, WECC), customer identification numbers, preferred names, CDP organizational information, industry classifications, credit ratings, account executive details, and geographical information.",
+        "chunk_hash": "04fb4b0d76dd8b2e866da97b75bdb2c5e3eb85e6f1fd90595c1ab0085b4ced75",
+        "run_id": "20260305T072727Z"
+    },
+    {
+        "doc_id": "doc_0df3b17e21cf823d",
+        "chunk_id": 7,
+        "pdf_path": "/dbfs/FileStore/tables/pdf_files/sample_confluence_pdf.pdf",
+        "page_no": 1,
+        "content": "[Section: Main Functions->Timestamp Comparison and Incremental Updates] The get_elastic_compare_data() function implements intelligent data synchronization by comparing timestamps between incoming EDP data and existing Elasticsearch documents. This prevents unnecessary updates and ensures only modified or new records are processed, significantly improving job efficiency and reducing processing time. The function handles non-existent documents gracefully, treating them as new records, and includes comprehensive error handling to maintain job stability during comparison operations.",
+        "chunk_hash": "febaebed770d5f084a78fa41c1abdae119b73e01b4892a058cd968c8ed6b9af4",
+        "run_id": "20260305T072727Z"
+    },
+    {
+        "doc_id": "doc_0df3b17e21cf823d",
+        "chunk_id": 1,
+        "pdf_path": "/dbfs/FileStore/tables/pdf_files/sample_confluence_pdf.pdf",
+        "page_no": 2,
+        "content": "[Section: Main Functions->Elasticsearch Document Construction] The build_elastic_data() function transforms raw EDP data into structured Elasticsearch documents. It maps all customer data fields, generates text embeddings using the sentence-transformers multi-qa-distilbert-cos-v1 model, and prepares documents for indexing with proper field validation and default value handling. The embedding generation combines customer descriptions and preferred names to create semantic search capabilities, enabling intelligent query matching beyond exact text searches.",
+        "chunk_hash": "4efa890289764ad6098a4d749938f54bd281841bdfdef8afdc226c26e47cc0d8",
+        "run_id": "20260305T072727Z"
+    },
+    {
+        "doc_id": "doc_0df3b17e21cf823d",
+        "chunk_id": 2,
+        "pdf_path": "/dbfs/FileStore/tables/pdf_files/sample_confluence_pdf.pdf",
+        "page_no": 2,
+        "content": "[Section: Main Functions->Data Indexing and Storage] The elastic_ingestion() function handles the actual insertion of processed documents into the Elasticsearch index \"smart-search-pc377-zeus\". This function provides the final step in the data pipeline, ensuring transformed and enriched customer data is available for search operations.",
+        "chunk_hash": "17c86d17f148d00bccae6efed3a99b372843541274a6f437a09fe4dfa5f7a718",
+        "run_id": "20260305T072727Z"
+    },
+    {
+        "doc_id": "doc_0df3b17e21cf823d",
+        "chunk_id": 3,
+        "pdf_path": "/dbfs/FileStore/tables/pdf_files/sample_confluence_pdf.pdf",
+        "page_no": 2,
+        "content": "[Section: Main Functions->Utility Functions] The codebase includes several utility functions for operational support: list_current_directory() for debugging file system access, uninstall() for package management, and generate_hash() for creating unique identifiers when needed.",
+        "chunk_hash": "e9bca8e49dc8e677971b2b6452d6cb1dbd20eb8f2a7d8e7902305f5352978eac",
+        "run_id": "20260305T072727Z"
+    },
+    {
+        "doc_id": "doc_0df3b17e21cf823d",
+        "chunk_id": 4,
+        "pdf_path": "/dbfs/FileStore/tables/pdf_files/sample_confluence_pdf.pdf",
+        "page_no": 2,
+        "content": "[Section: Data ingestion job and GraphQL with Limit Search->Data Processing Flow] The job follows a systematic data processing approach starting with environment configuration and dependency installation. It retrieves authentication secrets, establishes connections to both EDP GraphQL API and Elasticsearch, then processes data in paginated batches to handle large customer datasets efficiently. For each company record, the job performs timestamp comparison to determine if updates are necessary, transforms the data into the required Elasticsearch structure, generates semantic embeddings for enhanced search capabilities, and indexes the final document into the search infrastructure.",
+        "chunk_hash": "53c1a9b3348973dad943a2bb2e09332e1d01b865a16e85e8136a9381213147bf",
+        "run_id": "20260305T072727Z"
+    },
+    {
+        "doc_id": "doc_0df3b17e21cf823d",
+        "chunk_id": 5,
+        "pdf_path": "/dbfs/FileStore/tables/pdf_files/sample_confluence_pdf.pdf",
+        "page_no": 2,
+        "content": "[Section: Data ingestion job and GraphQL with Limit Search->Error Handling and Resilience] The job implements comprehensive error handling throughout the data pipeline including graceful exits for configuration failures, retry logic for API communications, fallback mechanisms for embedding generation failures, and detailed logging for troubleshooting and monitoring purposes. The timestamp-based incremental update mechanism includes a smart termination feature that stops processing when 500 consecutive records with identical or older timestamps are encountered, preventing unnecessary processing of unchanged data.",
+        "chunk_hash": "55626199fc12fcd6b418a9e48e33dafd5d1b8e11cd1091cf634b0af919a9baed",
+        "run_id": "20260305T072727Z"
+    },
+    {
+        "doc_id": "doc_0df3b17e21cf823d",
+        "chunk_id": 6,
+        "pdf_path": "/dbfs/FileStore/tables/pdf_files/sample_confluence_pdf.pdf",
+        "page_no": 2,
+        "content": "[Section: Data ingestion job and GraphQL with Limit Search->Network and Security Configuration] The job operates within NextEra Energy's secure network environment using corporate proxy settings for all external communications. All sensitive credentials are managed through AWS Secrets Manager, ensuring secure access to both EDP APIs and Elasticsearch infrastructure without exposing authentication details in the code.",
+        "chunk_hash": "fa427f266836c8b2fc8b288d6d8714abde0ece5ef6fdc3e95162d49a1edd3795",
+        "run_id": "20260305T072727Z"
+    },
+    {
+        "doc_id": "doc_0df3b17e21cf823d",
+        "chunk_id": 7,
+        "pdf_path": "/dbfs/FileStore/tables/pdf_files/sample_confluence_pdf.pdf",
+        "page_no": 2,
+        "content": "[Section: Data ingestion job and GraphQL with Limit Search->Performance Optimization] The job includes several performance optimizations including pagination-based data retrieval to manage memory usage, timestamp-based incremental updates to minimize processing overhead, batch processing capabilities for efficient Elasticsearch operations, and intelligent termination logic to prevent unnecessary iterations through unchanged data. The embedding generation is performed selectively, combining relevant text fields to create meaningful semantic representations while handling cases where source data may be incomplete or unavailable.",
+        "chunk_hash": "5348b456c69ddb7f13ef3fa9ac8b96dad7bb931033d9eae88f8b3f5353bea307",
+        "run_id": "20260305T072727Z"
+    },
+    {
+        "doc_id": "doc_0df3b17e21cf823d",
+        "chunk_id": 8,
+        "pdf_path": "/dbfs/FileStore/tables/pdf_files/sample_confluence_pdf.pdf",
+        "page_no": 2,
+        "content": "[Section: Performance Optimization->Columns ingested] caiso_shrt_trm_val ercot_shrt_trm_val iso_ne_shrt_trm_val miso_shrt_trm_val nyiso_shrt_trm_val pjm_shrt_trm_val spp_shrt_trm_val serc_shrt_trm_val wecc_shrt_trm_val ces_cust_nbr prfrd_nm cdp_org_nm cdp_actvs_txt cdp_sectrs_txt cdp_prmry_actvy_nm cdp_prmry_sectr_nm iva_indstry_prvs_yr_nm gics_sub_ind_prvs_yr_nm neer_vrtcl_prvs_yr_nm prfrd_indstry_prvs_yr_nm c_and_i_acct_exec_orig_leadr_nm c_and_i_acct_exec_nm crdt_ratg_s_and_p_val hq_city_state_prvs_yr_nm msci_tgt_shrt_desc etl_insrt_dttm etl_upd_dttm",
+        "chunk_hash": "4de0e926a94df8da3e7bf348666d536a7f1b0c70ee6f0d805c7f7a0e54d56bf1",
+        "run_id": "20260305T072727Z"
+    },
+    {
+        "doc_id": "doc_0df3b17e21cf823d",
+        "chunk_id": 9,
+        "pdf_path": "/dbfs/FileStore/tables/pdf_files/sample_confluence_pdf.pdf",
+        "page_no": 2,
+        "content": "[Section: Performance Optimization->Columns ingested] ##rt _ desc etl _ insrt _ dttm etl _ upd _ dttm",
+        "chunk_hash": "9943085691d3486f9a5f83e920799fdee1cb463c3a9b5155b853d5b4e58752ff",
+        "run_id": "20260305T072727Z"
+    },
+    {
+        "doc_id": "doc_0df3b17e21cf823d",
+        "chunk_id": 1,
+        "pdf_path": "/dbfs/FileStore/tables/pdf_files/sample_confluence_pdf.pdf",
+        "page_no": 3,
+        "content": "[Section: Data ingestion job and GraphQL with Limit Search->Monitoring and Troubleshooting] Comprehensive logging throughout the job execution provides visibility into processing progress, error conditions, and performance metrics. The job logs include page numbers during pagination, document processing confirmations, timestamp comparisons for debugging, embedding generation status, and detailed error messages for troubleshooting. For operational support, the job provides clear indicators of processing completion, handles various failure scenarios gracefully, and maintains detailed execution logs accessible through AWS CloudWatch for monitoring and analysis.",
+        "chunk_hash": "6747fe949cd31517bcdb372fa77646e5483c5532f69d16e81c79c5b948fd09a2",
+        "run_id": "20260305T072727Z"
+    },
+    {
+        "doc_id": "doc_0df3b17e21cf823d",
+        "chunk_id": 2,
+        "pdf_path": "/dbfs/FileStore/tables/pdf_files/sample_confluence_pdf.pdf",
+        "page_no": 3,
+        "content": "[Section: GraphQL API and Limit Search->Overview] We are documenting this EDP API to ensure our development team has comprehensive visibility into the search infrastructure that powers customer insights. This documentation serves as the foundation for connecting to EDP API, and the GraphQL query. This API is a query tool used by the Customer.AI chatbot backend, to get all data relevant data from Redshift DB. Connection",
+        "chunk_hash": "aad3390a5d608e392811e31fc85f564d1707f0f5d0a1b59ec9c2d73516cf3bb2",
+        "run_id": "20260305T072727Z"
+    },
+    {
+        "doc_id": "doc_0df3b17e21cf823d",
+        "chunk_id": 3,
+        "pdf_path": "/dbfs/FileStore/tables/pdf_files/sample_confluence_pdf.pdf",
+        "page_no": 3,
+        "content": "[Section: Overview->API URL] : Dev: https://mvt3t4mhqbdkjmw5bftx42dvxq.appsync-api.us-east-1.amazonaws.com/graphql",
+        "chunk_hash": "012c94cc47617f005e9862b11d085370910e8ba5ca687b51a576a17e75529123",
+        "run_id": "20260305T072727Z"
+    },
+    {
+        "doc_id": "doc_0df3b17e21cf823d",
+        "chunk_id": 4,
+        "pdf_path": "/dbfs/FileStore/tables/pdf_files/sample_confluence_pdf.pdf",
+        "page_no": 3,
+        "content": "[Section: Overview->Authentication type] : api-key",
+        "chunk_hash": "c3957f2b478eee6d90c53a9904da934640ec6394bd80d04fc29ec1af08161d79",
+        "run_id": "20260305T072727Z"
+    },
+    {
+        "doc_id": "doc_0df3b17e21cf823d",
+        "chunk_id": 5,
+        "pdf_path": "/dbfs/FileStore/tables/pdf_files/sample_confluence_pdf.pdf",
+        "page_no": 3,
+        "content": "[Section: Overview->Headers:] x-api-key:  API key Content-Type: application/json",
+        "chunk_hash": "adc94db6fe626c623b3c4ad84bbfedb8533f889e053d79b8e5db934c0b7aa2d5",
+        "run_id": "20260305T072727Z"
+    },
+    {
+        "doc_id": "doc_0df3b17e21cf823d",
+        "chunk_id": 6,
+        "pdf_path": "/dbfs/FileStore/tables/pdf_files/sample_confluence_pdf.pdf",
+        "page_no": 3,
+        "content": "[Section: GraphQL API and Limit Search->Query syntax] query MyQuery { get_ces_customer( eff_end_dttm: { eq: \"9999-12-31 00:00:00.000\" }, # remove the company duplicates \"\"\" + condition + \"\"\") {  # all needed conditions separate by comma pagination { page limit } data { \"\"\" + fields + \"\"\" #returning field’s names } } }",
+        "chunk_hash": "7cf1c8f349e991cf42c4780b85046d54a8d598c74f141f103ac760d263d74e14",
+        "run_id": "20260305T072727Z"
+    },
+    {
+        "doc_id": "doc_0df3b17e21cf823d",
+        "chunk_id": 1,
+        "pdf_path": "/dbfs/FileStore/tables/pdf_files/sample_confluence_pdf.pdf",
+        "page_no": 4,
+        "content": "[Section: Limit search->Limit search related intents] min_value (float) The numeric value that the user’s question indicates is the minimum value max_value (float) The numeric value that the user’s question indicates is the maximum value sort_direction (string) The ascending or descending sorting direction indicated by the user",
+        "chunk_hash": "3e0fb283d2c109d721f80b58b005df43bbead5ad1001ce333f73eec110a05890",
+        "run_id": "20260305T072727Z"
+    },
+    {
+        "doc_id": "doc_0df3b17e21cf823d",
+        "chunk_id": 2,
+        "pdf_path": "/dbfs/FileStore/tables/pdf_files/sample_confluence_pdf.pdf",
+        "page_no": 4,
+        "content": "[Section: Limit search->Limit search conditions syntax] Sorting: sort: [\"field name.sort_direction”] top: sort direction desc bottom: sort direction asc Less than: field name: {lte: \"max_value”} Greater than: field name: {gte: \"min_value”}",
+        "chunk_hash": "f8b7b058886d1e4d6495f7bc3638d82ce6b8699096b4ce29b7d3c6ed960e2573",
+        "run_id": "20260305T072727Z"
+    }
+]
