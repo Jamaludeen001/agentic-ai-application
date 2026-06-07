@@ -1,6 +1,6 @@
 # QData Agent
 
-> A fully custom, production-ready data analyst agent built from scratch — no LangChain AgentExecutor, no black box. Powered by Model Context Protocol (MCP) for tool orchestration, secured with multi-layer protection against SQL injection and path traversal, fully observable via LangSmith with per-run audit trails and user feedback scoring, and an LLM-based intent classifier that understands natural conversation. Every layer is owned, auditable, and production-hardened.
+> A fully custom, production-ready data analyst agent architected from the ground up — no LangChain AgentExecutor, no black box. Powered by Model Context Protocol (MCP) for tool orchestration, secured with multi-layer protection against SQL injection and path traversal, fully observable via LangSmith with per-run audit trails and user feedback scoring, and an LLM-based intent classifier that understands natural conversation. Every layer is owned, auditable, and production-hardened.
 ---
 
 ## Why QData Agent?
