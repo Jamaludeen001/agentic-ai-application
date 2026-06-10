@@ -1,0 +1,11 @@
+langchain-openai
+langsmith
+mcp
+fastmcp
+uvicorn
+duckdb
+sqlglot
+pandas
+json-repair
+python-dotenv
+starlette
