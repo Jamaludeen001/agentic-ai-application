@@ -1,4 +1,3 @@
-import os
 import uvicorn
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
@@ -9,10 +8,9 @@ from tools.source_query.tool import query_source
 from tools.temp_loader.tool import load_source_into_temp
 from tools.temp_query.tool import query_temp
 from tools.temp_inspector.tool import list_temp_tables
+from config import MCP_AUTH_TOKEN
 
 # ── Token Auth ────────────────────────────────────────────────────────────────
-MCP_AUTH_TOKEN = os.environ.get("MCP_AUTH_TOKEN", "your-secret-token")
-
 class TokenAuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         if request.url.path == "/health":
@@ -34,7 +32,7 @@ class TokenAuthMiddleware(BaseHTTPMiddleware):
 
 # ── MCP Server ────────────────────────────────────────────────────────────────
 mcp = FastMCP(
-    name = "dataforge",
+    name = "QData_Agent",
     host = "0.0.0.0",
     port = 8000,
 )
@@ -79,11 +77,11 @@ def tool_list_temp_tables(session_id: str) -> str:
     return list_temp_tables(session_id)
 
 # ── Mount auth middleware and run ─────────────────────────────────────────────
-app = mcp.streamable_http_app()   # streamable HTTP — not SSE
+app = mcp.streamable_http_app()
 app.add_middleware(TokenAuthMiddleware)
 
 if __name__ == "__main__":
-    print("DataForge MCP Server starting...")
+    print("QData Agent MCP Server starting...")
     print(f"Endpoint     : http://0.0.0.0:8000/mcp")
     print(f"Health check : http://0.0.0.0:8000/health")
     print(f"Transport    : Streamable HTTP")
