@@ -1,8 +1,7 @@
 import asyncio
 import uuid
-import os
 import logging
-from typing import Dict, List
+from typing import List
 from mcp.client.streamable_http import streamablehttp_client
 from mcp import ClientSession
 from langchain_openai import ChatOpenAI
@@ -11,22 +10,20 @@ from agent.agent import FullyCustomAgent
 from agent.audit import LangSmithAudit
 from agent.classifier import classify_intent
 from core.duckdb_runner import cleanup_session
-from config import SOURCE_FOLDER
+from config import SOURCE_FOLDER, MCP_SERVER_URL, MCP_AUTH_TOKEN
 
 logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger(__name__)
 smith  = Client()
 
-# ── MCP Server connection config ──────────────────────────────────────────────
-MCP_SERVER_URL   = os.environ.get("MCP_SERVER_URL", "http://localhost:8000/mcp")
-MCP_AUTH_TOKEN   = os.environ.get("MCP_AUTH_TOKEN", "your-secret-token")
+# ── Auth headers passed on every MCP request ──────────────────────────────────
 MCP_AUTH_HEADERS = {"Authorization": f"Bearer {MCP_AUTH_TOKEN}"}
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 async def main():
-    session_id     = str(uuid.uuid4())
-    history        = []
-    last_run_id    = None
+    session_id  = str(uuid.uuid4())
+    history     = []
+    last_run_id = None
 
     llm            = ChatOpenAI(model="gpt-4o",      temperature=0, max_tokens=2000)
     classifier_llm = ChatOpenAI(model="gpt-4o-mini", temperature=0, max_tokens=20)
