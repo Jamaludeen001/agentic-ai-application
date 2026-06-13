@@ -7,10 +7,10 @@ from config import IS_PROD, SOURCE_FOLDER, TEMP_FOLDER
 def load_source_into_temp(
     table_name: str,
     session_id: str,
-    filename:   str = None,   # dev — csv filename
-    username:   str = None,   # prod — redshift username
-    password:   str = None,   # prod — redshift password
-    sql:        str = None,   # prod — custom SELECT to load subset
+    filename:   str = None,
+    username:   str = None,
+    password:   str = None,
+    sql:        str = None,
 ) -> str:
     try:
         if IS_PROD:
@@ -22,7 +22,6 @@ def load_source_into_temp(
                 return err
             df = execute_on_source(csv_path, "SELECT * FROM data")
 
-        # Write into temp DuckDB — always DuckDB for temp, both dev and prod
         db_path = TEMP_FOLDER / f"session_{session_id}.db"
         conn    = duckdb.connect(database=str(db_path))
         conn.execute(
