@@ -1,26 +1,17 @@
-import redshift_connector
 import pandas as pd
-from config import TEMP_FOLDER
-from functools import lru_cache
+from config import REDSHIFT_HOST, REDSHIFT_PORT, REDSHIFT_DATABASE
 
 def get_redshift_connection(username: str, password: str):
-    """
-    Connect to Redshift as the actual user.
-    Redshift enforces their table permissions directly.
-    """
+    import redshift_connector
     return redshift_connector.connect(
-        host     = "your-cluster.redshift.amazonaws.com",
-        database = "your_database",
-        port     = 5439,
+        host     = REDSHIFT_HOST,
+        database = REDSHIFT_DATABASE,
+        port     = REDSHIFT_PORT,
         user     = username,
         password = password,
     )
 
 def execute_on_redshift(sql: str, username: str, password: str) -> pd.DataFrame:
-    """
-    Execute query as the user — Redshift handles access control.
-    If user has no access to a table, Redshift raises an error naturally.
-    """
     conn   = get_redshift_connection(username, password)
     cursor = conn.cursor()
     try:
@@ -33,10 +24,6 @@ def execute_on_redshift(sql: str, username: str, password: str) -> pd.DataFrame:
         conn.close()
 
 def get_redshift_schema(username: str, password: str) -> str:
-    """
-    Get all tables and schemas the user has access to.
-    Redshift only returns what this user can see.
-    """
     sql = """
         SELECT table_schema, table_name, column_name, data_type
         FROM information_schema.columns
