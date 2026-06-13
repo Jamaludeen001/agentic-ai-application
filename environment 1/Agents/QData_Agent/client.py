@@ -10,16 +10,13 @@ from agent.agent import FullyCustomAgent
 from agent.audit import LangSmithAudit
 from agent.classifier import classify_intent
 from core.duckdb_runner import cleanup_session
-from config import SOURCE_FOLDER, MCP_SERVER_URL, MCP_AUTH_TOKEN
+from auth.jwt_handler import generate_service_token
+from config import SOURCE_FOLDER, MCP_SERVER_URL, IS_PROD
 
 logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger(__name__)
 smith  = Client()
 
-# ── Auth headers passed on every MCP request ──────────────────────────────────
-MCP_AUTH_HEADERS = {"Authorization": f"Bearer {MCP_AUTH_TOKEN}"}
-
-# ── Main ──────────────────────────────────────────────────────────────────────
 async def main():
     session_id  = str(uuid.uuid4())
     history     = []
@@ -30,18 +27,36 @@ async def main():
     agent          = FullyCustomAgent(llm=llm, session_id=session_id)
     audit          = LangSmithAudit(session_id=session_id)
 
-    print(f"Session    : {session_id}")
-    print(f"Source     : {SOURCE_FOLDER.resolve()}")
+    # Prod — collect Redshift credentials once at startup
+    redshift_username = None
+    redshift_password = None
+    if IS_PROD:
+        redshift_username = input("Redshift username: ").strip()
+        redshift_password = input("Redshift password: ").strip()
+
+    # Generate JWT — carries credentials in prod, just user id in dev
+    service_token = generate_service_token(
+        user_id  = session_id,
+        metadata = {
+            "redshift_username": redshift_username,
+            "redshift_password": redshift_password,
+        } if IS_PROD else {}
+    )
+    auth_headers = {"Authorization": f"Bearer {service_token}"}
+
+    print(f"\nSession    : {session_id}")
     print(f"MCP Server : {MCP_SERVER_URL}")
+    print(f"Mode       : {'Production (Redshift)' if IS_PROD else 'Dev (CSV)'}")
+    if not IS_PROD:
+        print(f"Source     : {SOURCE_FOLDER.resolve()}")
     print("Connecting to MCP server...\n")
 
     async with streamablehttp_client(
         url     = MCP_SERVER_URL,
-        headers = MCP_AUTH_HEADERS,
+        headers = auth_headers,
     ) as (read, write, _):
         async with ClientSession(read, write) as mcp_session:
 
-            # ── Initialize and discover tools from server ─────────────────────
             await mcp_session.initialize()
             tools_response  = await mcp_session.list_tools()
             available_tools = [
@@ -53,7 +68,7 @@ async def main():
                 for t in tools_response.tools
             ]
 
-            print(f"Tools available from server ({len(available_tools)}):")
+            print(f"Tools available ({len(available_tools)}):")
             for t in available_tools:
                 print(f"  - {t['name']}")
             print()
@@ -91,7 +106,6 @@ async def main():
             finally:
                 cleanup_session(session_id)
                 print("Session cleaned up.")
-
 
 if __name__ == "__main__":
     asyncio.run(main())
