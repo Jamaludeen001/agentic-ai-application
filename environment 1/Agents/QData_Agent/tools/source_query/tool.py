@@ -1,14 +1,14 @@
-from core.validators import validate_select_only
 from core.duckdb_runner import execute_on_source, format_df
 from core.redshift_runner import execute_on_redshift
+from core.validators import validate_select_only
 from core.pathguard import safe_path
 from config import IS_PROD, SOURCE_FOLDER, MAX_SQL_LEN
 
 def query_source(
     sql:      str,
-    filename: str = None,   # dev — csv filename
-    username: str = None,   # prod — redshift username
-    password: str = None,   # prod — redshift password
+    filename: str = None,
+    username: str = None,
+    password: str = None,
 ) -> str:
     if len(sql) > MAX_SQL_LEN:
         return f"Query too long (max {MAX_SQL_LEN} chars)."
