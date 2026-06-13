@@ -5,9 +5,9 @@ from core.pathguard import safe_path
 from config import IS_PROD, SOURCE_FOLDER
 
 def inspect_source_schema(
-    filename: str = None,   # dev — csv filename
-    username: str = None,   # prod — redshift username
-    password: str = None,   # prod — redshift password
+    filename: str = None,
+    username: str = None,
+    password: str = None,
 ) -> str:
     try:
         if IS_PROD:
