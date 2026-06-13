@@ -9,3 +9,10 @@ pandas
 json-repair
 python-dotenv
 starlette
+pyjwt
+boto3
+redshift-connector
+fastapi
+python-multipart
+argon2-cffi
+httpx
