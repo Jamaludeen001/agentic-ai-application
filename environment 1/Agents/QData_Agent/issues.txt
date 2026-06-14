@@ -1,8 +1,20 @@
-ith_cache
-      |     result = self._generate(
-      |              ^^^^^^^^^^^^^^^
-      |   File "D:\project Xe\APP\application\agenticAIdev311\Lib\site-packages\langchain_google_genai\chat_models.py", line 3238, in _generate
-      |     _handle_client_error(e, request)
-      |   File "D:\project Xe\APP\application\agenticAIdev311\Lib\site-packages\langchain_google_genai\chat_models.py", line 169, in _handle_client_error
-      |     raise ChatGoogleGenerativeAIError(msg) from e
-      | langchain_google_genai.chat_models.ChatGoogleGenerativeAIError: Error calling model 'Gemma-4-26B' (INVALID_ARGUMENT): 400 INVALID_ARGUMENT. {'error': {'code': 400, 'message': '* GenerateContentRequest.model: unexpected model name format\n', 'status': 'INVALID_ARGUMENT'}}
+from pydantic import BaseModel
+from typing import Literal
+
+class IntentDecision(BaseModel):
+    intent: Literal["POSITIVE_FEEDBACK", "NEGATIVE_FEEDBACK", "CONTINUATION"]
+
+def classify_intent(message: str, llm) -> str:
+    structured_llm = llm.with_structured_output(IntentDecision)
+    messages = [
+        {"role": "system", "content": """Classify the user message into exactly one of:
+- POSITIVE_FEEDBACK: user liked or praised the last response
+- NEGATIVE_FEEDBACK: user disliked or complained about the last response
+- CONTINUATION: user is asking a new question or continuing the conversation"""},
+        {"role": "user", "content": message},
+    ]
+    try:
+        result = structured_llm.invoke(messages)
+        return result.intent
+    except Exception:
+        return "CONTINUATION"
