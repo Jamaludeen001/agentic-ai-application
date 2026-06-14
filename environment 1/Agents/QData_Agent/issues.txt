@@ -1,11 +1,196 @@
-You: what is the last subscription date from the customers ?
-WARNING:agent.agent:JSON parse failed at step 2: Could not parse: Thought: The user is asking for the last subscription date from the 'customers' table.
-I have already inspected the schema and confirmed that 'Subscription Date' is a DATE column in the 'customers' ta
-WARNING:agent.agent:JSON parse failed at step 3: Could not parse: Step 3
-Thought: The user wants to find the maximum 'Subscription Date' from the 'customers' table. I can achieve this by using the `MAX()` aggregate function on the 'Subscription Date' column.
-Action:
-WARNING:agent.agent:JSON parse failed at step 5: Could not parse: ['The last subscription date from the customers table is 2022-05-29.', '{"type": "final", "answer": "The last subscription date from the customers table is 2022-05-29."}']
-Bot: The last subscription date from the customers table is 2022-05-29.
+solution :
+import json
+import uuid
+import logging
+from typing import Dict, Any, List, Tuple, Literal, Union
+from pydantic import BaseModel, Field
+from mcp import ClientSession
+from agent.audit import LangSmithAudit
 
-You: great thanks you are amazing
-Bot: Glad that helped!
+logger = logging.getLogger(__name__)
+
+# ── Structured output schemas ─────────────────────────────────────────────────
+class ToolAction(BaseModel):
+    type:  Literal["action"]
+    tool:  str                  = Field(description="Name of the tool to call")
+    input: Dict[str, Any]       = Field(description="Input dictionary for the tool")
+
+class FinalAnswer(BaseModel):
+    type:   Literal["final"]
+    answer: str                 = Field(description="Final answer to the user")
+
+class AgentDecision(BaseModel):
+    type:   Literal["action", "final"]
+    tool:   str | None          = Field(default=None, description="Tool name if type is action")
+    input:  Dict[str, Any] | None = Field(default=None, description="Tool input if type is action")
+    answer: str | None          = Field(default=None, description="Final answer if type is final")
+
+# ── Scratchpad formatter ──────────────────────────────────────────────────────
+def format_scratchpad(steps: List[Tuple[str, str, str]]) -> str:
+    buf = []
+    for idx, (act, inp, obs) in enumerate(steps, start=1):
+        buf.append(f"Step {idx}")
+        buf.append(f"Action: {act}")
+        buf.append(f"Input: {inp}")
+        buf.append(f"Observation: {obs}")
+        buf.append("")
+    return "\n".join(buf)
+
+# ── System prompt ─────────────────────────────────────────────────────────────
+def build_system_prompt(tools: list) -> str:
+    tool_docs = "\n".join(
+        f"- {t['name']}: {t['description']}"
+        for t in tools
+    )
+    return f"""You are a data analyst assistant that solves tasks step by step.
+
+Available tools:
+{tool_docs}
+
+Rules:
+- Decide ONE action at a time.
+- If you need to use a tool set type to 'action', provide tool name and input dict.
+- If you have the final answer set type to 'final', provide the answer string.
+- Always call tool_inspect_source_schema first before any query.
+
+SQL Rules:
+- Table name = filename without .csv (sales.csv → sales)
+- Never use filename in SQL (wrong: SELECT * FROM sales.csv)
+- Joins: SELECT * FROM sales s JOIN customers c ON s.id = c.id"""
+
+# ── Agent ─────────────────────────────────────────────────────────────────────
+class FullyCustomAgent:
+    def __init__(
+        self,
+        llm,
+        session_id:   str,
+        max_steps:    int = 8,
+        truncate_obs: int = 1500,
+    ):
+        self.llm          = llm
+        self.session_id   = session_id
+        self.max_steps    = max_steps
+        self.truncate_obs = truncate_obs
+        self.audit        = LangSmithAudit(session_id)
+
+        # ── Bind structured output to LLM ─────────────────────────────────────
+        # LLM is now FORCED to return AgentDecision schema
+        # No plain text, no ReAct format, no JSON parse errors
+        self.structured_llm = llm.with_structured_output(AgentDecision)
+
+    def _call_llm(self, messages: list) -> AgentDecision:
+        """
+        Returns AgentDecision object directly — fully validated by Pydantic.
+        Gemini cannot return plain text or ReAct format here.
+        """
+        return self.structured_llm.invoke(messages)
+
+    def _build_messages(
+        self,
+        user_query:    str,
+        history:       list,
+        steps:         List[Tuple[str, str, str]],
+        system_prompt: str,
+    ) -> list:
+        scratchpad_text = format_scratchpad(steps)
+        messages = [{"role": "system", "content": system_prompt}]
+        for h in history:
+            messages.append(h)
+        messages.append({"role": "user", "content": user_query})
+        if scratchpad_text.strip():
+            messages.append({
+                "role":    "assistant",
+                "content": f"Scratchpad so far:\n{scratchpad_text}"
+            })
+        return messages
+
+    async def run(
+        self,
+        user_query:      str,
+        history:         List[Dict],
+        mcp_session:     ClientSession,
+        available_tools: list,
+    ) -> Dict[str, Any]:
+
+        steps         = []
+        run_id        = str(uuid.uuid4())
+        tool_names    = [t["name"] for t in available_tools]
+        system_prompt = build_system_prompt(available_tools)
+
+        for step_idx in range(1, self.max_steps + 1):
+            messages = self._build_messages(user_query, history, steps, system_prompt)
+
+            # ── Structured output — no parse errors possible ──────────────────
+            try:
+                decision = self._call_llm(messages)
+            except Exception as e:
+                logger.warning("LLM call failed at step %d: %s", step_idx, e)
+                steps.append(("llm_error", "", f"LLM error: {e}"))
+                continue
+
+            logger.debug("Step %d decision: %s", step_idx, decision)
+
+            # ── Final answer ──────────────────────────────────────────────────
+            if decision.type == "final":
+                answer = (decision.answer or "").strip()
+                self.audit.log_run(user_query, answer, steps, "final_answer", run_id)
+                return {
+                    "final_answer": answer,
+                    "steps":        steps,
+                    "terminated":   "final_answer",
+                    "run_id":       run_id,
+                }
+
+            # ── Tool action ───────────────────────────────────────────────────
+            if decision.type == "action":
+                tool_name  = decision.tool  or ""
+                tool_input = decision.input or {}
+
+                # Invalid tool → inject as observation
+                if tool_name not in tool_names:
+                    steps.append((
+                        tool_name, str(tool_input),
+                        f"Invalid tool '{tool_name}'. Available: {tool_names}"
+                    ))
+                    continue
+
+                # Auto inject session_id
+                tool_schema = next(
+                    (t["input_schema"] for t in available_tools if t["name"] == tool_name), {}
+                )
+                if "session_id" in tool_schema.get("properties", {}):
+                    tool_input["session_id"] = self.session_id
+
+                # ── Call tool via MCP ─────────────────────────────────────────
+                try:
+                    result      = await mcp_session.call_tool(tool_name, tool_input)
+                    observation = str(result.content[0].text if result.content else "No result")
+                except Exception as e:
+                    observation = f"ToolError: {type(e).__name__}: {e}"
+
+                if len(observation) > self.truncate_obs:
+                    observation = observation[:self.truncate_obs] + " ... [truncated]"
+
+                steps.append((tool_name, str(tool_input), observation))
+                continue
+
+        # ── Max steps reached ─────────────────────────────────────────────────
+        logger.warning("Max steps reached for query: %s", user_query)
+        messages = self._build_messages(user_query, history, steps, system_prompt)
+        messages.append({
+            "role":    "user",
+            "content": "Max steps reached. Give your best final answer."
+        })
+        try:
+            decision = self._call_llm(messages)
+            ans      = decision.answer or "Max steps reached."
+        except Exception:
+            ans = "Max steps reached. Could not produce final answer."
+
+        self.audit.log_run(user_query, ans, steps, "max_steps", run_id)
+        return {
+            "final_answer": ans,
+            "steps":        steps,
+            "terminated":   "max_steps",
+            "run_id":       run_id,
+        }
