@@ -6,3 +6,12 @@ error :
  langchain_google_genai.chat_models.ChatGoogleGenerativeAIError: Error calling model 'gemini-1.5-flash-latest' (NOT_FOUND): 404 NOT_FOUND. {'error': {'code': 404, 'message': 'models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ModelService.ListModels to see the list of available models and their supported methods.', 'status': 'NOT_FOUND'}}
 
  langchain_google_genai.chat_models.ChatGoogleGenerativeAIError: Error calling model 'gemini-1.5-flash' (NOT_FOUND): 404 NOT_FOUND. {'error': {'code': 404, 'message': 'models/gemini-1.5-flash is not found for API version v1beta, or is not supported for generateContent. Call ModelService.ListModels to see the list of available models and their supported methods.', 'status': 'NOT_FOUND'}}
+
+solution :
+import google.generativeai as genai
+
+genai.configure(api_key="your-google-api-key")
+
+for model in genai.list_models():
+    if "generateContent" in model.supported_generation_methods:
+        print(model.name)
