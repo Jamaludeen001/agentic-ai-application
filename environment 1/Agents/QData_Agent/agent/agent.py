@@ -25,9 +25,19 @@ Rules:
 - To give final answer:
   {{"type": "final", "answer": "<your answer>"}}
 - No markdown, no code fences — pure JSON only.
-- Always call tool_inspect_source_schema first before querying.
-- For simple reads use tool_query_source.
-- For multi-step work use tool_load_source_into_temp then tool_query_temp."""
+
+SQL RULES (CRITICAL):
+- ALWAYS call tool_inspect_source_schema first to get column names and table names.
+- Dev table name = filename without .csv extension:
+    sales.csv      → SELECT * FROM sales
+    customers.csv  → SELECT * FROM customers
+- NEVER use filename in SQL:
+    Wrong: SELECT * FROM sales.csv
+    Wrong: SELECT * FROM 'sales.csv'
+- For joins use both table names directly:
+    SELECT * FROM sales s JOIN customers c ON s.id = c.id
+- For simple reads → tool_query_source
+- For multi-step work → tool_load_source_into_temp then tool_query_temp"""
 
 def parse_json(raw: str) -> Dict[str, Any]:
     result = json_repair.repair_json(raw, return_objects=True)
