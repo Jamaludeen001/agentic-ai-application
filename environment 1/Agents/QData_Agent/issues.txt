@@ -15,3 +15,24 @@ genai.configure(api_key="your-google-api-key")
 for model in genai.list_models():
     if "generateContent" in model.supported_generation_methods:
         print(model.name)
+
+outcome :
+models/gemini-2.5-flash
+models/gemini-2.5-pro
+models/gemini-2.0-flash
+models/gemini-2.0-flash-001
+models/gemini-2.0-flash-lite-001
+models/gemini-2.0-flash-lite
+models/gemini-2.5-flash-preview-tts
+models/gemini-2.5-pro-preview-tts
+models/gemma-4-26b-a4b-it
+models/gemma-4-31b-it
+models/gemini-flash-latest
+models/gemini-flash-lite-latest
+models/gemini-pro-latest
+models/gemini-2.5-flash-lite
+models/gemini-2.5-flash-image
+models/gemini-3-pro-preview
+models/gemini-3-flash-preview
+models/gemini-3.1-pro-preview
+models/gemini-3.1-pro-preview-customtools
