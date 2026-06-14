@@ -4,7 +4,7 @@ from config import SOURCE_FOLDER
 
 MUTATION_NODES = (
     exp.Insert, exp.Update, exp.Delete, exp.Drop,
-    exp.Alter,  exp.Truncate, exp.Merge, exp.Transaction,
+    exp.Alter, exp.Merge, exp.Transaction,
     exp.Commit, exp.Rollback, exp.Grant, exp.Revoke, exp.Command,
 )
 
@@ -24,6 +24,11 @@ def _has_mutation(statements: list) -> tuple[bool, str]:
         for node in statement.walk():
             if isinstance(node, MUTATION_NODES):
                 return True, type(node).__name__
+            
+        # fallback keyword check for unsupported statements
+        sql_text = statement.sql().lower()
+        if "truncate" in sql_text:
+            return True, "Truncate"
     return False, ""
 
 def validate_select_only(sql: str) -> tuple[bool, str]:
@@ -33,7 +38,7 @@ def validate_select_only(sql: str) -> tuple[bool, str]:
     for statement in statements:
         if statement is None:
             continue
-        if not isinstance(statement, (exp.Select, exp.With, exp.Explain)):
+        if not isinstance(statement, (exp.Select, exp.With)):
             return False, f"Only SELECT allowed on source data. Got: {type(statement).__name__}"
     mutated, node_name = _has_mutation(statements)
     if mutated:
