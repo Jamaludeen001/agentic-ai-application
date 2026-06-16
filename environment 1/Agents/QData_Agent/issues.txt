@@ -18,3 +18,19 @@ def classify_intent(message: str, llm) -> str:
         return result.intent
     except Exception:
         return "CONTINUATION"
+
+message="hi"
+llm = ChatGoogleGenerativeAI(model="gemini-3.5-flash", temperature=0, max_output_tokens=20, api_key="*****")
+
+messages = [
+        {"role": "system", "content": """Classify into exactly one of:
+- POSITIVE_FEEDBACK
+- NEGATIVE_FEEDBACK
+- CONTINUATION
+Reply with ONLY the label."""},
+        {"role": "user", "content": message},
+    ]
+out    = llm.invoke(messages)
+print(out)
+
+content=[] additional_kwargs={} response_metadata={'finish_reason': 'MAX_TOKENS', 'model_name': 'gemini-3.5-flash', 'safety_ratings': [], 'model_provider': 'google_genai'} id='lc_run--019ecbc8-0ab4-7c22-8abb-3cf8b5b45b3d-0' tool_calls=[] invalid_tool_calls=[] usage_metadata={'input_tokens': 34, 'output_tokens': 17, 'total_tokens': 51, 'input_token_details': {'cache_read': 0}, 'output_token_details': {'reasoning': 17}}
